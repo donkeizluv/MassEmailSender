@@ -5,12 +5,14 @@ using System.Net;
 using System.Net.Mail;
 using System.Threading;
 
-namespace AnEmailService.EmailSender
+namespace EmailSender
 {
     public delegate void EmailSendingThreadExitEventHandler(object sender, EmailSendingThreadEventArgs e);
+    public delegate void EmailSendingProgressChangedEventHandler(object sender, EmailSendingProgressChangedArgs e);
     public class SmtpMailSender
     {
         public event EmailSendingThreadExitEventHandler OnEmailSendingThreadExit;
+        public event EmailSendingProgressChangedEventHandler OnEmailSendingProgressChangedExit;
         private readonly SmtpClient _client;
         public bool IsThreadRunning { get; private set; }
         public bool CancelThread { get; set; } = false;
@@ -23,9 +25,8 @@ namespace AnEmailService.EmailSender
         /// <param name="senderName"></param>
         /// <param name="server"></param>
         /// <param name="port"></param>
-        public SmtpMailSender(string senderName, string server, int port)
+        public SmtpMailSender(string server, int port)
         {
-            EmailAccount = senderName;
             Server = server;
             _client = new SmtpClient
             {
@@ -37,28 +38,31 @@ namespace AnEmailService.EmailSender
                 EnableSsl = false
             };
         }
-
-        public SmtpMailSender(string emailAccount, string pwd, string server, int port)
+        public void SetSmtpAccount(string userName, string pwd)
         {
-            EmailAccount = emailAccount;
-            Server = server;
-            _client = new SmtpClient
-            {
-                UseDefaultCredentials = false,
-                Credentials = new NetworkCredential(EmailAccount, pwd),
-                Port = port,
-                Host = Server,
-                DeliveryMethod = SmtpDeliveryMethod.Network,
-                Timeout = Timeout,
-                EnableSsl = false //seems faster with this shit off
-            };
-            // port 587, 25..
-            // 25 seems to do the trick
+            _client.Credentials = new NetworkCredential(userName, pwd);
         }
+        //public SmtpMailSender(string emailAccount, string pwd, string server, int port)
+        //{
+        //    EmailAccount = emailAccount;
+        //    Server = server;
+        //    _client = new SmtpClient
+        //    {
+        //        UseDefaultCredentials = false,
+        //        Credentials = new NetworkCredential(EmailAccount, pwd),
+        //        Port = port,
+        //        Host = Server,
+        //        DeliveryMethod = SmtpDeliveryMethod.Network,
+        //        Timeout = Timeout,
+        //        EnableSsl = false //seems faster with this shit off
+        //    };
+        //    // port 587, 25..
+        //    // 25 seems to do the trick
+        //}
 
-        public string EmailAccount { get; }
+        public string EmailAccount { get; set; }
         public string Server { get; }
-        public int SleepInterval { get; set; } = 5000;
+        public int SleepInterval { get; set; } = 3500;
         public int Timeout { get; set; } = 30000;
         public ConcurrentQueue<MailMessage> MailQueue { get; set; } = new ConcurrentQueue<MailMessage>();
 
@@ -97,6 +101,10 @@ namespace AnEmailService.EmailSender
         {
             OnEmailSendingThreadExit?.Invoke(this, e);
         }
+        protected virtual void RaiseOnSendingProgressChanged(int sent)
+        {
+            OnEmailSendingProgressChangedExit?.Invoke(this, new EmailSendingProgressChangedArgs(sent));
+        }
 
         private void SendingThread()
         {
@@ -104,6 +112,7 @@ namespace AnEmailService.EmailSender
             int emailCount = 0;
             int retries = 0;
             bool unrecoverableEx = false;
+            string exMessage = string.Empty;
             try
             {
                 while (!CancelThread)
@@ -122,6 +131,7 @@ namespace AnEmailService.EmailSender
                             anEmail.To.Count));
                         _client.Send(anEmail);
                         Log("Sent sucessfully.");
+                        RaiseOnSendingProgressChanged(emailCount);
                         sleep = 0;
                         emailCount++;
                     }
@@ -175,6 +185,7 @@ namespace AnEmailService.EmailSender
                     {
                         unrecoverableEx = true;
                         Log("Unauthenticated");
+                        exMessage = "Account is not valid!";
                         return;
                     }
                     catch (SmtpFailedRecipientsException ex)
@@ -185,6 +196,7 @@ namespace AnEmailService.EmailSender
                     {
                         unrecoverableEx = true;
                         Log("Unhandled exception on sending email.");
+                        exMessage = "Unhandled exception in thread.";
                         Log(ex.Message ?? string.Empty);
                         if (ex.InnerException != null)
                             Log(" Inner ex: " + ex.InnerException.Message ?? string.Empty);
@@ -196,7 +208,7 @@ namespace AnEmailService.EmailSender
             finally
             {
                 IsThreadRunning = false;
-                RaiseOnSendingThreadExit(new EmailSendingThreadEventArgs(emailCount, retries, unrecoverableEx));
+                RaiseOnSendingThreadExit(new EmailSendingThreadEventArgs(emailCount, retries, unrecoverableEx, exMessage));
                 Log("Thread stopped.");
                 //GC.Collect();
             }
@@ -212,11 +224,21 @@ namespace AnEmailService.EmailSender
         public int TotalSent { get; private set; }
         public int TotalRetries { get; private set; }
         public bool StopOnUnrecoverableException { get; private set; }
-        public EmailSendingThreadEventArgs(int sent, int retries, bool unrecoverableException)
+        public string ExceptionMessage { get; private set; } = string.Empty;
+        public EmailSendingThreadEventArgs(int sent, int retries, bool unrecoverableException, string exMess)
         {
             TotalSent = sent;
             TotalRetries = retries;
             StopOnUnrecoverableException = unrecoverableException;
+            ExceptionMessage = exMess;
+        }
+    }
+    public class EmailSendingProgressChangedArgs : EventArgs
+    {
+        public int Sent { get; private set; }
+        public EmailSendingProgressChangedArgs(int sent)
+        {
+            Sent = sent;
         }
     }
 }
