@@ -1,26 +1,24 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace MassEmailSender
 {
-    static class Program
+    internal static class Program
     {
         /// <summary>
         /// The main entry point for the application.
         /// </summary>
         [STAThread]
-        static void Main(string[] agrs)
+        private static void Main(string[] agrs)
         {
             string server = string.Empty;
             int port = 0;
             bool flag = false;
-            if(agrs.Count() > 0)
+            if (agrs.Count() > 0)
             {
                 try
                 {
@@ -33,10 +31,10 @@ namespace MassEmailSender
                     return;
                 }
             }
-            
+
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            if(flag)
+            if (flag)
             {
                 Application.Run(new FormMain(server, port));
             }
@@ -44,18 +42,19 @@ namespace MassEmailSender
             {
                 Application.Run(new FormMain());
             }
-            
         }
+
         private static void ParseCustomServer(string[] agrs, out string server, out int port)
         {
             var splited = agrs.First().Split(':');
-            if(splited.Count() != 2)
+            if (splited.Count() != 2)
             {
                 throw new ArgumentException("invalid arguments");
             }
             server = splited[0];
             port = int.Parse(splited[1]);
         }
+
         public static string ExeDir
         {
             get
@@ -66,6 +65,7 @@ namespace MassEmailSender
                 return Path.GetDirectoryName(path);
             }
         }
+
         public static string Version
         {
             get

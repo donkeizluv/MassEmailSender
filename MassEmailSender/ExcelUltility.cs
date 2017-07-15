@@ -59,7 +59,6 @@ namespace MassEmailSender
                         dict.Add(key, new List<List<string>>() { rowContent });
                     }
                 }
-             
             }
             return dict;
         }
@@ -96,6 +95,7 @@ namespace MassEmailSender
             }
             return WriteExcel(fullName, sheetName, array);
         }
+
         public static bool WriteExcel(string fullName, string sheetName, IEnumerable<object[]> contentArray)
         {
             try

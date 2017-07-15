@@ -5,7 +5,6 @@ using System.IO;
 using System.Linq;
 using System.Net.Mail;
 using System.Net.Mime;
-using System.Text;
 
 namespace MassEmailSender
 {
@@ -15,6 +14,7 @@ namespace MassEmailSender
         private const string EmailContentFolder = "content";
         private const string EmailSubjectFile = "subject.txt";
         private const string EmailContentFile = "body.txt";
+
         public string DefaultSuffix
         {
             get
@@ -22,6 +22,7 @@ namespace MassEmailSender
                 return textBoxSuffix.Text;
             }
         }
+
         private List<MailMessage> MakeEmails(Dictionary<string, List<string>> mailAttatchmentDict)
         {
             var emails = new List<MailMessage>();
@@ -38,6 +39,7 @@ namespace MassEmailSender
             }
             return emails;
         }
+
         private Dictionary<string, List<string>> MakeExcelFiles(List<MailJob> jobs, ExcelPackage package)
         {
             //check if folder exists
@@ -56,7 +58,7 @@ namespace MassEmailSender
                         throw new Exception("wtf?");
                     }
                     //add to dict
-                    if(dict.ContainsKey(group.Key))
+                    if (dict.ContainsKey(group.Key))
                     {
                         dict[group.Key].Add(fullFilename);
                     }
@@ -68,6 +70,7 @@ namespace MassEmailSender
             }
             return dict;
         }
+
         private string StripIlligalChar(string email)
         {
             string invalid = new string(Path.GetInvalidFileNameChars()) + new string(Path.GetInvalidPathChars());
@@ -78,6 +81,7 @@ namespace MassEmailSender
             }
             return returnString;
         }
+
         private void AddAttachment(string fullFilename, MailMessage mail)
         {
             if (string.IsNullOrEmpty(fullFilename))
@@ -92,11 +96,12 @@ namespace MassEmailSender
             disposition.DispositionType = DispositionTypeNames.Attachment;
             mail.Attachments.Add(attachment);
         }
-        //TODO: implement 
+
+        //TODO: implement
         private void AddSenderNRecipient(MailMessage email, string recipient)
         {
             email.From = new MailAddress(CheckSuffix(textBoxSmtpAccountName.Text));
-            if(checkBoxRoute.Checked)
+            if (checkBoxRoute.Checked)
             {
                 email.To.Add(CheckSuffix(textBoxRouteTo.Text));
             }
@@ -104,18 +109,21 @@ namespace MassEmailSender
             {
                 email.To.Add(CheckSuffix(recipient));
             }
-            if(textBoxCc.Text.Length > 0)
+            if (textBoxCc.Text.Length > 0)
                 email.CC.Add(CheckSuffix(textBoxCc.Text));
         }
+
         private void AddContent(MailMessage email)
         {
             email.Subject = _subject;
             email.Body = _body;
         }
+
         private string CheckSuffix(string address)
          => address.Contains("@") ? address : address + DefaultSuffix;
 
         private static Random random = new Random();
+
         public static string RandomString(int length)
         {
             const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";

@@ -8,14 +8,19 @@ using System.Threading;
 namespace EmailSender
 {
     public delegate void EmailSendingThreadExitEventHandler(object sender, EmailSendingThreadEventArgs e);
+
     public delegate void EmailSendingProgressChangedEventHandler(object sender, EmailSendingProgressChangedArgs e);
+
     public class SmtpMailSender
     {
         public event EmailSendingThreadExitEventHandler OnEmailSendingThreadExit;
+
         public event EmailSendingProgressChangedEventHandler OnEmailSendingProgressChangedExit;
+
         private readonly SmtpClient _client;
         public bool IsThreadRunning { get; private set; }
         public bool CancelThread { get; set; } = false;
+
         //public readonly Queue<MailMessage> _queueMail = new Queue<MailMessage>();
         private Thread _sendingThread;
 
@@ -38,10 +43,12 @@ namespace EmailSender
                 EnableSsl = false
             };
         }
+
         public void SetSmtpAccount(string userName, string pwd)
         {
             _client.Credentials = new NetworkCredential(userName, pwd);
         }
+
         //public SmtpMailSender(string emailAccount, string pwd, string server, int port)
         //{
         //    EmailAccount = emailAccount;
@@ -101,6 +108,7 @@ namespace EmailSender
         {
             OnEmailSendingThreadExit?.Invoke(this, e);
         }
+
         protected virtual void RaiseOnSendingProgressChanged(int sent)
         {
             OnEmailSendingProgressChangedExit?.Invoke(this, new EmailSendingProgressChangedArgs(sent));
@@ -149,7 +157,7 @@ namespace EmailSender
                     {
                         //limit reached error
                         //SmtpException
-                        //Service not available, closing transmission channel. 
+                        //Service not available, closing transmission channel.
                         //The server response was: 4.4.2 Message submission rate for this client has exceeded the configured limit
 
                         //enqueue to retry later
@@ -216,15 +224,16 @@ namespace EmailSender
 
         private static void Log(string log)
         {
-
         }
     }
+
     public class EmailSendingThreadEventArgs : EventArgs
     {
         public int TotalSent { get; private set; }
         public int TotalRetries { get; private set; }
         public bool StopOnUnrecoverableException { get; private set; }
         public string ExceptionMessage { get; private set; } = string.Empty;
+
         public EmailSendingThreadEventArgs(int sent, int retries, bool unrecoverableException, string exMess)
         {
             TotalSent = sent;
@@ -233,9 +242,11 @@ namespace EmailSender
             ExceptionMessage = exMess;
         }
     }
+
     public class EmailSendingProgressChangedArgs : EventArgs
     {
         public int Sent { get; private set; }
+
         public EmailSendingProgressChangedArgs(int sent)
         {
             Sent = sent;
