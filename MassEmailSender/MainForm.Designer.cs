@@ -145,7 +145,7 @@
             // aboutToolStripMenuItem
             // 
             this.aboutToolStripMenuItem.Name = "aboutToolStripMenuItem";
-            this.aboutToolStripMenuItem.Size = new System.Drawing.Size(181, 26);
+            this.aboutToolStripMenuItem.Size = new System.Drawing.Size(125, 26);
             this.aboutToolStripMenuItem.Text = "About";
             this.aboutToolStripMenuItem.Click += new System.EventHandler(this.AboutToolStripMenuItem_Click);
             // 
@@ -177,6 +177,7 @@
             // 
             this.textBoxLimit.Location = new System.Drawing.Point(87, 30);
             this.textBoxLimit.Margin = new System.Windows.Forms.Padding(4);
+            this.textBoxLimit.MaxLength = 5;
             this.textBoxLimit.Name = "textBoxLimit";
             this.textBoxLimit.Size = new System.Drawing.Size(55, 22);
             this.textBoxLimit.TabIndex = 7;

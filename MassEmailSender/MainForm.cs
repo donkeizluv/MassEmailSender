@@ -218,17 +218,31 @@ namespace MassEmailSender
 
             if (fileDialog.ShowDialog() != DialogResult.OK) return;
             var fileName = fileDialog.FileName;
-            this.Cursor = Cursors.WaitCursor;
-            //TODO: catch opened by other process exception
-            //and other read xlsx ex
-            _currentPackage = new ExcelPackage(new FileInfo(fileName));
-            PopulateSheetsCbBox(ExcelUltility.GetSheetNames(_currentPackage).ToList());
-            //select first index
-            if (comboBoxSheet.Items.Count > 0)
+            try
             {
-                comboBoxSheet.SelectedIndex = 0;
+                this.Cursor = Cursors.WaitCursor;
+                _currentPackage = new ExcelPackage(new FileInfo(fileName));
+                PopulateSheetsCbBox(ExcelUltility.GetSheetNames(_currentPackage).ToList());
+                if (comboBoxSheet.Items.Count > 0)
+                {
+                    comboBoxSheet.SelectedIndex = 0;
+                }
             }
-            this.Cursor = Cursors.Arrow;
+            catch (IOException ex)
+            {
+
+                MessageBox.Show("Cant open file, make sure its not opened by any programs");
+                return;
+            }
+            catch(InvalidDataException ex)
+            {
+                MessageBox.Show("Cant read this file!");
+                return;
+            }
+            finally
+            {
+                this.Cursor = Cursors.Arrow;
+            }
         }
 
         private void PopulateGroupCbBox(List<string> list)
