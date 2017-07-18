@@ -1,4 +1,5 @@
 ﻿using OfficeOpenXml;
+using OfficeOpenXml.Style;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -52,7 +53,7 @@ namespace MassEmailSender
                 {
                     string fullFilename = $"{Program.ExeDir}\\{TempFolderName}\\" +
                         $"{StripIlligalChar(group.Key)}-{StripIlligalChar(job.Sheet)}-{RandomString(6)}.xlsx";
-                    if (!ExcelUltility.WriteExcel(fullFilename, job.Sheet, group.Value))
+                    if (!ExcelUltility.WriteExcel(fullFilename, job.Sheet, group.Value, checkBoxKeepStyle.Checked))
                     {
                         //TODO: handle this!
                         throw new Exception("wtf?");

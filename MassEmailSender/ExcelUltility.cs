@@ -1,4 +1,5 @@
 ﻿using OfficeOpenXml;
+using OfficeOpenXml.Style;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -72,7 +73,15 @@ namespace MassEmailSender
             }
             return list;
         }
-
+        public static IEnumerable<CellStyle> GetRowStyles(ExcelWorksheet sheet, int row, int count)
+        {
+            var list = new List<CellStyle>();
+            for (int i = 1; i <= count; i++)
+            {
+                list.Add(new CellStyle(sheet.Cells[row, i].Style));
+            }
+            return list;
+        }
         public static IEnumerable<string> GetFirstRow(ExcelWorksheet sheet)
         {
             //var rowCnt = sheet.Dimension.End.Row;
@@ -86,17 +95,17 @@ namespace MassEmailSender
             return list;
         }
 
-        public static bool WriteExcel(string fullName, string sheetName, List<List<string>> contentArray)
+        public static bool WriteExcel(string fullName, string sheetName, List<List<string>> contentArray, bool keepStyle)
         {
             var array = new List<object[]>();
             foreach (var item in contentArray)
             {
                 array.Add(item.ToArray());
             }
-            return WriteExcel(fullName, sheetName, array);
+            return WriteExcel(fullName, sheetName, array, keepStyle);
         }
 
-        public static bool WriteExcel(string fullName, string sheetName, IEnumerable<object[]> contentArray)
+        public static bool WriteExcel(string fullName, string sheetName, IEnumerable<object[]> contentArray, bool keepStyle)
         {
             try
             {
@@ -104,6 +113,24 @@ namespace MassEmailSender
                 {
                     var sheet = package.Workbook.Worksheets.Add(sheetName);
                     sheet.Cells.LoadFromArrays(contentArray);
+                    int colCount = sheet.Dimension.End.Column;
+                    var headerStyle = new List<CellStyle>();
+                    var bodyStyle = new List<CellStyle>();
+                    //get styles
+                    if (keepStyle)
+                    {
+                        headerStyle = GetRowStyles(sheet, 1, colCount).ToList();
+                        bodyStyle = GetRowStyles(sheet, 2, colCount).ToList();
+                        for (int col = 1; col <= colCount; col++)
+                        {
+                            bodyStyle.ToList()[col - 1].SetStyle(sheet.Column(col).Style);
+                        }
+                        for (int col = 1; col <= colCount; col++)
+                        {
+                            headerStyle.ToList()[col - 1].SetStyle(sheet.Cells[1, col].Style);
+                        }
+
+                    }
                     package.Save();
                 }
                 return true;

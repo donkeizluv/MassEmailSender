@@ -1,5 +1,6 @@
 ﻿using EmailSender;
 using OfficeOpenXml;
+using OfficeOpenXml.Style;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -205,7 +206,6 @@ namespace MassEmailSender
         {
             Close();
         }
-
         private void OpenToolStripMenuItem_Click(object sender, EventArgs e)
         {
             dataGridViewMailJob.Rows.Clear();
@@ -266,14 +266,15 @@ namespace MassEmailSender
         private void ComboBoxSheet_SelectedIndexChanged(object sender, EventArgs e)
         {
             string selectedSheet = comboBoxSheet.SelectedItem.ToString();
-            PopulateGroupCbBox(ExcelUltility.GetFirstRow(_currentPackage.Workbook.Worksheets[selectedSheet]).ToList());
+            var ws = _currentPackage.Workbook.Worksheets[selectedSheet];
+            PopulateGroupCbBox(ExcelUltility.GetFirstRow(ws).ToList());
             //select first index
             if (comboBoxGroup.Items.Count > 0)
             {
                 comboBoxGroup.SelectedIndex = 0;
             }
         }
-
+      
         private void FormMain_FormClosing(object sender, FormClosingEventArgs e)
         {
         }

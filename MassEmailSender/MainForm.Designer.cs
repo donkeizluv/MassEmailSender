@@ -62,6 +62,7 @@
             this.buttonCancel = new System.Windows.Forms.Button();
             this.labelProgess = new System.Windows.Forms.Label();
             this.labelVer = new System.Windows.Forms.Label();
+            this.checkBoxKeepStyle = new System.Windows.Forms.CheckBox();
             this.menuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridViewMailJob)).BeginInit();
             this.groupBoxSetting.SuspendLayout();
@@ -264,6 +265,7 @@
             // 
             // groupBoxSetting
             // 
+            this.groupBoxSetting.Controls.Add(this.checkBoxKeepStyle);
             this.groupBoxSetting.Controls.Add(this.textBoxSuffix);
             this.groupBoxSetting.Controls.Add(this.label5);
             this.groupBoxSetting.Controls.Add(this.groupBox1);
@@ -319,6 +321,7 @@
             this.textBoxSmtpAccountName.Name = "textBoxSmtpAccountName";
             this.textBoxSmtpAccountName.Size = new System.Drawing.Size(120, 22);
             this.textBoxSmtpAccountName.TabIndex = 21;
+            this.textBoxSmtpAccountName.Text = "rept_service";
             // 
             // label1
             // 
@@ -346,6 +349,7 @@
             this.textBoxSmtpAccountPwd.Name = "textBoxSmtpAccountPwd";
             this.textBoxSmtpAccountPwd.Size = new System.Drawing.Size(120, 20);
             this.textBoxSmtpAccountPwd.TabIndex = 23;
+            this.textBoxSmtpAccountPwd.Text = "$$@S3rv1c3";
             // 
             // textBoxCc
             // 
@@ -414,6 +418,19 @@
             this.labelVer.Size = new System.Drawing.Size(47, 17);
             this.labelVer.TabIndex = 33;
             this.labelVer.Text = "Ver. X";
+            // 
+            // checkBoxKeepStyle
+            // 
+            this.checkBoxKeepStyle.AutoSize = true;
+            this.checkBoxKeepStyle.Checked = true;
+            this.checkBoxKeepStyle.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.checkBoxKeepStyle.Location = new System.Drawing.Point(296, 146);
+            this.checkBoxKeepStyle.Margin = new System.Windows.Forms.Padding(4);
+            this.checkBoxKeepStyle.Name = "checkBoxKeepStyle";
+            this.checkBoxKeepStyle.Size = new System.Drawing.Size(96, 21);
+            this.checkBoxKeepStyle.TabIndex = 33;
+            this.checkBoxKeepStyle.Text = "Keep style";
+            this.checkBoxKeepStyle.UseVisualStyleBackColor = true;
             // 
             // FormMain
             // 
@@ -488,6 +505,7 @@
         private System.Windows.Forms.TextBox textBoxSuffix;
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.Label labelVer;
+        private System.Windows.Forms.CheckBox checkBoxKeepStyle;
     }
 }
 
