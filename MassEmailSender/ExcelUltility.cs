@@ -122,15 +122,16 @@ namespace MassEmailSender
             }
             return list;
         }
-        public static IEnumerable<CellStyle> GetRowStyles(ExcelWorksheet sheet, int row, int count)
-        {
-            var list = new List<CellStyle>();
-            for (int i = 1; i <= count; i++)
-            {
-                list.Add(new CellStyle(sheet.Cells[row, i].Style));
-            }
-            return list;
-        }
+        //nope
+        //public static IEnumerable<CellStyle> GetRowStyles(ExcelWorksheet sheet, int row, int count)
+        //{
+        //    var list = new List<CellStyle>();
+        //    for (int i = 1; i <= count; i++)
+        //    {
+        //        list.Add(new CellStyle(sheet.Cells[row, i].Style));
+        //    }
+        //    return list;
+        //}
         public static IEnumerable<string> GetFirstRow(ExcelWorksheet sheet)
         {
             //var rowCnt = sheet.Dimension.End.Row;
@@ -161,8 +162,17 @@ namespace MassEmailSender
                 int row = 1;
                 foreach (var address in addressList)
                 {
+                    //if(string.Compare(copyFromSheet.Cells[address].StyleName, "Hyperlink") == 0)
+                    //{
+                    //    //epplus hyperlink style bug
+                    //    //cause AgrumentOutOfRange shit storm
+                    //    //possible other style name fuck this !
+                    //    copyFromSheet.Cells[address].StyleName = "Normal"; //this works but causes whole range to normal
+                    //}
+                    CleanHyperlinkStyleShit(copyFromSheet, address);
                     copyFromSheet.Cells[address].Copy(sheet.Cells[row, 1], ExcelRangeCopyOptionFlags.ExcludeFormulas);
                     row++;
+
                 }
                 if (fitAllCol)
                 {
@@ -172,29 +182,20 @@ namespace MassEmailSender
             }
             return true;
         }
-        //doesnt work, and idk why :/
-        //private static void DeleteEmptyRows(ExcelWorksheet ws)
-        //{
-        //    for (int row = 1; row <= ws.Dimension.End.Row; row++)
-        //    {
-        //        bool isEmptyRow = true;
-        //        for (int col = 1; row <= ws.Dimension.End.Column; col++)
-        //        {
-        //            var value = ws.Cells[row, col].Value;
-        //            if (value == null) continue;
-        //            if (!string.IsNullOrEmpty(value.ToString()))
-        //            {
-        //                isEmptyRow = false;
-        //                break;
-        //            }
-        //        }
-        //        if(isEmptyRow)
-        //        {
-        //            ws.DeleteRow(row, 1, true);
-        //        }
-
-        //    }
-        //}
+        private static void CleanHyperlinkStyleShit(ExcelWorksheet ws, string address)
+        {
+            //for some fucking unknown reason
+            //ExcelRange ref object sometimes doesnt hold the correct infomation
+            //so i have to use ws.Cells[address] everywhere
+            for (int row = ws.Cells[address].Start.Row; row < ws.Cells[address].Rows + ws.Cells[address].Start.Row; row++)
+            {
+                for (int col = 1; col <= ws.Cells[address].Columns; col++)
+                {
+                    if (string.Compare(ws.Cells[row, col].StyleName, "Hyperlink") == 0)
+                        ws.Cells[row, col].StyleName = "Normal";
+                }
+            }
+        }
         //write list to new excel file
         public static bool WriteExcel(string fullName, string sheetName, List<List<string>> contentArray)
         {

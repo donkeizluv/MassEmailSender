@@ -1,9 +1,7 @@
 ﻿using EmailSender;
 using OfficeOpenXml;
-using OfficeOpenXml.Style;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -157,6 +155,7 @@ namespace MassEmailSender
                 {
                     //return control to normal
                     ReadyControlSet();
+                    return;
                 }
                 
                 //set account
