@@ -48,28 +48,32 @@ namespace MassEmailSender
             var dict = new Dictionary<string, List<string>>();
             foreach (var job in jobs)
             {
-                var contentDict = ExcelUltility.MapContent(package.Workbook.Worksheets[job.Sheet], job.Group);
+                var contentDict = ExcelUltility.MapContentAddress(package.Workbook.Worksheets[job.SheetName], job.Group);
                 foreach (var group in contentDict)
                 {
                     string fullFilename = $"{Program.ExeDir}\\{TempFolderName}\\" +
-                        $"{StripIlligalChar(group.Key)}-{StripIlligalChar(job.Sheet)}-{RandomString(6)}.xlsx";
-                    if (!ExcelUltility.WriteExcel(fullFilename, job.Sheet, group.Value, checkBoxKeepStyle.Checked))
+                        $"{StripIlligalChar(group.Key)}-{StripIlligalChar(job.SheetName)}-{RandomString(6)}.xlsx";
+                    if (!ExcelUltility.WriteExcel(fullFilename, job.SheetName, group.Value, job.Sheet))
                     {
                         //TODO: handle this!
                         throw new Exception("wtf?");
                     }
                     //add to dict
-                    if (dict.ContainsKey(group.Key))
-                    {
-                        dict[group.Key].Add(fullFilename);
-                    }
-                    else
-                    {
-                        dict.Add(group.Key, new List<string>() { fullFilename });
-                    }
+                    AddOrCreateNewList(dict, group.Key, fullFilename);
                 }
             }
             return dict;
+        }
+        public static void AddOrCreateNewList<T>(Dictionary<string, List<T>> dict, string key, T item)
+        {
+            if (dict.ContainsKey(key))
+            {
+                dict[key].Add(item);
+            }
+            else
+            {
+                dict.Add(key, new List<T> { item });
+            }
         }
 
         private string StripIlligalChar(string email)

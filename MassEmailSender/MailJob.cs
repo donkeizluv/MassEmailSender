@@ -1,13 +1,17 @@
-﻿namespace MassEmailSender
+﻿using OfficeOpenXml;
+
+namespace MassEmailSender
 {
     public class MailJob
     {
-        public string Sheet { get; set; }
+        public ExcelWorksheet Sheet { get; set; }
         public string Group { get; set; }
+        public string SheetName { get; set; }
 
-        public MailJob(string sheetName, string group)
+        public MailJob(ExcelWorksheet sheet, string sheetName, string group)
         {
-            Sheet = sheetName;
+            Sheet = sheet;
+            SheetName = sheetName;
             Group = group;
         }
 

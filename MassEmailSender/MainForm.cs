@@ -59,11 +59,7 @@ namespace MassEmailSender
                 {
                     SetProgressLabel("Done!");
                 }
-                //return control to normal
-                EnableControls(true);
-                buttonCancel.Enabled = false;
-                //set label to empty
-                this.Cursor = Cursors.Arrow;
+                ReadyControlSet();
             });
             
         }
@@ -160,11 +156,7 @@ namespace MassEmailSender
                 if (MessageBox.Show(this, $"Start sending {emails.Count}(s)?", "Confirm", MessageBoxButtons.YesNo) != DialogResult.Yes)
                 {
                     //return control to normal
-                    EnableControls(true);
-                    buttonCancel.Enabled = false;
-                    SetProgressLabel("...");
-                    this.Cursor = Cursors.Arrow;
-                    return;
+                    ReadyControlSet();
                 }
                 
                 //set account
@@ -175,12 +167,24 @@ namespace MassEmailSender
             }
             catch (Exception ex)
             {
+#if DEBUG
+                throw;
+#endif
                 var builder = new StringBuilder();
                 builder.Append(ex.Message);
                 builder.Append(Environment.NewLine);
                 builder.Append(ex.StackTrace);
                 MessageBox.Show(this, builder.ToString(), "Screen shot this!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                ReadyControlSet();
             }
+        }
+        private void ReadyControlSet()
+        {
+            EnableControls(true);
+            buttonCancel.Enabled = false;
+            SetProgressLabel("...");
+            this.Cursor = Cursors.Arrow;
+            return;
         }
         private int GetLimit()
         {
@@ -306,7 +310,8 @@ namespace MassEmailSender
                 return;
             }
             //add to job list
-            var job = new MailJob(comboBoxSheet.SelectedItem.ToString(), comboBoxGroup.SelectedItem.ToString());
+            var job = new MailJob(_currentPackage.Workbook.Worksheets[comboBoxSheet.SelectedItem.ToString()],
+                comboBoxSheet.SelectedItem.ToString(), comboBoxGroup.SelectedItem.ToString());
             _jobs.Add(job);
             //add to grid
             var row = dataGridViewMailJob.Rows[dataGridViewMailJob.Rows.Add(job.ToObjectArray())];
