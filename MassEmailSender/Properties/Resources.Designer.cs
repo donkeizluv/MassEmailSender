@@ -61,6 +61,16 @@ namespace MassEmailSender.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Icon similar to (Icon).
+        /// </summary>
+        internal static System.Drawing.Icon birdy {
+            get {
+                object obj = ResourceManager.GetObject("birdy", resourceCulture);
+                return ((System.Drawing.Icon)(obj));
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &lt;head&gt;&lt;meta http-equiv=Content-Type content=&quot;text/html; charset=unicode&quot;&gt;&lt;/head&gt;.
         /// </summary>
         internal static string HeadHTML {
