@@ -40,6 +40,7 @@ namespace MassEmailSender
             }
             return emails;
         }
+        
 
         private Dictionary<string, List<string>> MakeExcelFiles(List<MailJob> jobs, ExcelPackage package)
         {
@@ -102,7 +103,6 @@ namespace MassEmailSender
             mail.Attachments.Add(attachment);
         }
 
-        //TODO: implement
         private void AddSenderNRecipient(MailMessage email, string recipient)
         {
             email.From = new MailAddress(CheckSuffix(textBoxSmtpAccountName.Text));

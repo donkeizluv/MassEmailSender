@@ -49,7 +49,6 @@
             this.comboBoxSheet = new System.Windows.Forms.ComboBox();
             this.label7 = new System.Windows.Forms.Label();
             this.groupBoxSetting = new System.Windows.Forms.GroupBox();
-            this.checkBoxKeepStyle = new System.Windows.Forms.CheckBox();
             this.textBoxSuffix = new System.Windows.Forms.TextBox();
             this.label5 = new System.Windows.Forms.Label();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
@@ -73,7 +72,7 @@
             // labelEmailCol
             // 
             this.labelEmailCol.AutoSize = true;
-            this.labelEmailCol.Location = new System.Drawing.Point(247, 264);
+            this.labelEmailCol.Location = new System.Drawing.Point(247, 266);
             this.labelEmailCol.Name = "labelEmailCol";
             this.labelEmailCol.Size = new System.Drawing.Size(52, 17);
             this.labelEmailCol.TabIndex = 0;
@@ -83,7 +82,7 @@
             // 
             this.comboBoxGroup.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.comboBoxGroup.FormattingEnabled = true;
-            this.comboBoxGroup.Location = new System.Drawing.Point(305, 261);
+            this.comboBoxGroup.Location = new System.Drawing.Point(305, 263);
             this.comboBoxGroup.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.comboBoxGroup.Name = "comboBoxGroup";
             this.comboBoxGroup.Size = new System.Drawing.Size(166, 24);
@@ -91,7 +90,7 @@
             // 
             // buttonAddJob
             // 
-            this.buttonAddJob.Location = new System.Drawing.Point(478, 261);
+            this.buttonAddJob.Location = new System.Drawing.Point(478, 263);
             this.buttonAddJob.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.buttonAddJob.Name = "buttonAddJob";
             this.buttonAddJob.Size = new System.Drawing.Size(75, 26);
@@ -206,7 +205,7 @@
             this.columnSheetname,
             this.columnGroup});
             this.dataGridViewMailJob.EditMode = System.Windows.Forms.DataGridViewEditMode.EditProgrammatically;
-            this.dataGridViewMailJob.Location = new System.Drawing.Point(12, 65);
+            this.dataGridViewMailJob.Location = new System.Drawing.Point(12, 58);
             this.dataGridViewMailJob.MultiSelect = false;
             this.dataGridViewMailJob.Name = "dataGridViewMailJob";
             this.dataGridViewMailJob.ReadOnly = true;
@@ -217,7 +216,7 @@
             this.dataGridViewMailJob.ShowCellToolTips = false;
             this.dataGridViewMailJob.ShowEditingIcon = false;
             this.dataGridViewMailJob.ShowRowErrors = false;
-            this.dataGridViewMailJob.Size = new System.Drawing.Size(541, 169);
+            this.dataGridViewMailJob.Size = new System.Drawing.Size(541, 191);
             this.dataGridViewMailJob.TabIndex = 14;
             this.dataGridViewMailJob.KeyUp += new System.Windows.Forms.KeyEventHandler(this.DataGridViewMailJob_KeyUp);
             // 
@@ -238,7 +237,7 @@
             // label6
             // 
             this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(12, 45);
+            this.label6.Location = new System.Drawing.Point(12, 38);
             this.label6.Name = "label6";
             this.label6.Size = new System.Drawing.Size(42, 17);
             this.label6.TabIndex = 15;
@@ -248,7 +247,7 @@
             // 
             this.comboBoxSheet.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.comboBoxSheet.FormattingEnabled = true;
-            this.comboBoxSheet.Location = new System.Drawing.Point(64, 261);
+            this.comboBoxSheet.Location = new System.Drawing.Point(64, 263);
             this.comboBoxSheet.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.comboBoxSheet.Name = "comboBoxSheet";
             this.comboBoxSheet.Size = new System.Drawing.Size(167, 24);
@@ -258,7 +257,7 @@
             // label7
             // 
             this.label7.AutoSize = true;
-            this.label7.Location = new System.Drawing.Point(13, 264);
+            this.label7.Location = new System.Drawing.Point(13, 266);
             this.label7.Name = "label7";
             this.label7.Size = new System.Drawing.Size(49, 17);
             this.label7.TabIndex = 16;
@@ -266,7 +265,6 @@
             // 
             // groupBoxSetting
             // 
-            this.groupBoxSetting.Controls.Add(this.checkBoxKeepStyle);
             this.groupBoxSetting.Controls.Add(this.textBoxSuffix);
             this.groupBoxSetting.Controls.Add(this.label5);
             this.groupBoxSetting.Controls.Add(this.groupBox1);
@@ -283,19 +281,6 @@
             this.groupBoxSetting.TabIndex = 18;
             this.groupBoxSetting.TabStop = false;
             this.groupBoxSetting.Text = "Setting";
-            // 
-            // checkBoxKeepStyle
-            // 
-            this.checkBoxKeepStyle.AutoSize = true;
-            this.checkBoxKeepStyle.Checked = true;
-            this.checkBoxKeepStyle.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.checkBoxKeepStyle.Location = new System.Drawing.Point(296, 146);
-            this.checkBoxKeepStyle.Margin = new System.Windows.Forms.Padding(4);
-            this.checkBoxKeepStyle.Name = "checkBoxKeepStyle";
-            this.checkBoxKeepStyle.Size = new System.Drawing.Size(96, 21);
-            this.checkBoxKeepStyle.TabIndex = 33;
-            this.checkBoxKeepStyle.Text = "Keep style";
-            this.checkBoxKeepStyle.UseVisualStyleBackColor = true;
             // 
             // textBoxSuffix
             // 
@@ -506,7 +491,6 @@
         private System.Windows.Forms.TextBox textBoxSuffix;
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.Label labelVer;
-        private System.Windows.Forms.CheckBox checkBoxKeepStyle;
     }
 }
 

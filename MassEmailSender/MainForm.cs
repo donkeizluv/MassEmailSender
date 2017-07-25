@@ -144,6 +144,10 @@ namespace MassEmailSender
                 //spliting files
                 var emailAttDict = MakeExcelFiles(_jobs, _currentPackage);
                 var emails = MakeEmails(emailAttDict);
+                //if (emails == null || emails.Count < 1)
+                //{
+                //    SetProgressLabel("Jobs failed.");
+                //}
                 //take limit amount of email
                 int limit = GetLimit();
                 if (limit > 0)

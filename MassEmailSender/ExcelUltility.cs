@@ -34,7 +34,7 @@ namespace MassEmailSender
             {
                 var cell = sheet.Cells[rowIndex, headerColIndex];
                 if (cell.Value == null) continue;
-                var key = cell.Value.ToString();
+                var key = cell.Value.ToString().Trim();
                 var rowContent = new List<string>();
                 for (int colIndex = 1; colIndex <= colCount; colIndex++)
                 {
@@ -90,7 +90,7 @@ namespace MassEmailSender
             {
                 var cell = sheet.Cells[rowIndex, headerColIndex];
                 if (cell.Value == null) continue;
-                var key = cell.Value.ToString();
+                var key = cell.Value.ToString().Trim();
                 string address = sheet.Cells[rowIndex, 1, rowIndex, colCount].Address;
                 //add to dict
                 if (list.ContainsKey(key))
