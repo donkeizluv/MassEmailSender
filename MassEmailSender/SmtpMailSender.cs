@@ -2,11 +2,12 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using MailKit.Net.Smtp;
-using MailKit;
 using MimeKit;
 using System.Threading;
 using System.Net.Sockets;
 using MailKit.Security;
+using System.Text;
+using System.IO;
 
 namespace EmailSender
 {
@@ -149,17 +150,35 @@ namespace EmailSender
             catch(SocketException ex) when (ex.Message.Contains("No such host is known"))
             {
                 exMessage = "Invalid host name";
+                Log(exMessage);
                 unrecoverableEx = true;
             }
             catch (SocketException ex) when (ex.Message.Contains("No connection could be made because the target machine actively refused it"))
             {
                 exMessage = "Invalid port number";
+                Log(exMessage);
                 unrecoverableEx = true;
             }
             catch (AuthenticationException ex) when (ex.Message.Contains("AuthenticationInvalidCredentials"))
             {
                 exMessage = "Invalid credential";
+                Log(exMessage);
                 unrecoverableEx = true;
+            }
+            catch (Exception ex)
+            {
+                unrecoverableEx = true;
+                exMessage = "Unhandled exception in thread.";
+                Log(exMessage);
+                Log(ex.Message ?? string.Empty);
+                Log(ex.StackTrace);
+                if (ex.InnerException != null)
+                {
+                    Log(" Inner ex: " + ex.InnerException.Message ?? string.Empty);
+                    Log(" Inner ex stacktrace: " + ex.InnerException.StackTrace);
+                }
+
+                return;
             }
             finally
             {
@@ -170,9 +189,14 @@ namespace EmailSender
                 //GC.Collect();
             }
         }
-
+        private static string LogPath => string.Format(@"{0}\{1}", MassEmailSender.Program.ExeDir, "log.txt");
         private static void Log(string log)
         {
+            File.AppendAllLines(LogPath, new List<string> { FormatLog(log) }, Encoding.UTF8);
+        }
+        private static string FormatLog(string log)
+        {
+            return string.Format("{0:G} - {1}", DateTime.Now, log);
         }
     }
 
