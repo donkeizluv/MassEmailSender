@@ -1,11 +1,9 @@
-﻿using OfficeOpenXml;
-using OfficeOpenXml.Style;
+﻿using MimeKit;
+using OfficeOpenXml;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net.Mail;
-using System.Net.Mime;
 
 namespace MassEmailSender
 {
@@ -24,18 +22,26 @@ namespace MassEmailSender
             }
         }
 
-        private List<MailMessage> MakeEmails(Dictionary<string, List<string>> mailAttatchmentDict)
+        private List<MimeMessage> MakeEmails(Dictionary<string, List<string>> mailAttatchmentDict)
         {
-            var emails = new List<MailMessage>();
+            var emails = new List<MimeMessage>();
             foreach (var pair in mailAttatchmentDict)
             {
-                var email = new MailMessage();
+                var email = new MimeMessage();
+                var attList = new List<MimePart>();
                 foreach (var att in pair.Value)
                 {
-                    AddAttachment(att, email);
+                    attList.Add(MakeAttachment(att));
                 }
                 AddSenderNRecipient(email, pair.Key);
-                AddContent(email);
+                var multipart = new Multipart("mixed");
+                foreach (var att in attList)
+                {
+                    multipart.Add(att);
+                }
+                multipart.Add(MakeBodyPart());
+                email.Body = multipart;
+                email.Subject = _subject;
                 emails.Add(email);
             }
             return emails;
@@ -88,40 +94,40 @@ namespace MassEmailSender
             return returnString;
         }
 
-        private void AddAttachment(string fullFilename, MailMessage mail)
+        private MimePart MakeAttachment(string fullFilename)
         {
             if (string.IsNullOrEmpty(fullFilename))
                 throw new ArgumentException("attachment file name is null or empty");
-            var attachment = new Attachment(fullFilename, MediaTypeNames.Application.Octet);
-            var disposition = attachment.ContentDisposition;
-            disposition.CreationDate = File.GetCreationTime(fullFilename);
-            disposition.ModificationDate = File.GetLastWriteTime(fullFilename);
-            disposition.ReadDate = File.GetLastAccessTime(fullFilename);
-            disposition.FileName = Path.GetFileName(fullFilename);
-            disposition.Size = new FileInfo(fullFilename).Length;
-            disposition.DispositionType = DispositionTypeNames.Attachment;
-            mail.Attachments.Add(attachment);
+            var attachment = new MimePart("text", "plain")
+            {
+                ContentObject = new ContentObject(File.OpenRead(fullFilename), ContentEncoding.Default),
+                ContentDisposition = new ContentDisposition(ContentDisposition.Attachment),
+                ContentTransferEncoding = ContentEncoding.Base64,
+                FileName = Path.GetFileName(fullFilename)
+            };
+            return attachment;
         }
 
-        private void AddSenderNRecipient(MailMessage email, string recipient)
+        private void AddSenderNRecipient(MimeMessage email, string recipient)
         {
-            email.From = new MailAddress(CheckSuffix(textBoxSmtpAccountName.Text));
+            email.From.Add(new MailboxAddress(CheckSuffix(textBoxSmtpAccountName.Text)));
             if (checkBoxRoute.Checked)
             {
-                email.To.Add(CheckSuffix(textBoxRouteTo.Text));
+                email.To.Add(new MailboxAddress(CheckSuffix(textBoxRouteTo.Text)));
             }
             else
             {
-                email.To.Add(CheckSuffix(recipient));
+                email.To.Add(new MailboxAddress(CheckSuffix(recipient)));
             }
             if (textBoxCc.Text.Length > 0)
-                email.CC.Add(CheckSuffix(textBoxCc.Text));
+                email.Cc.Add(new MailboxAddress(CheckSuffix(textBoxCc.Text)));
         }
 
-        private void AddContent(MailMessage email)
+        private TextPart MakeBodyPart()
         {
-            email.Subject = _subject;
-            email.Body = _body;
+            var part = new TextPart("plain");
+            part.Text = _body;
+            return part;
         }
 
         private string CheckSuffix(string address)

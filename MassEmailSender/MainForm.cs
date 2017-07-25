@@ -49,7 +49,8 @@ namespace MassEmailSender
            
             Invoke((Action)delegate
             {
-                if(e.StopOnUnrecoverableException)
+                ReadyControlSet();
+                if (e.StopOnUnrecoverableException)
                 {
                     SetProgressLabel($"Fail: {e.ExceptionMessage}");
                 }
@@ -57,7 +58,6 @@ namespace MassEmailSender
                 {
                     SetProgressLabel("Done!");
                 }
-                ReadyControlSet();
             });
             
         }
