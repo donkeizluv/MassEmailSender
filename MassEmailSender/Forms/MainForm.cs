@@ -1,4 +1,5 @@
 ﻿using EmailSender;
+using Log;
 using OfficeOpenXml;
 using System;
 using System.Collections.Generic;
@@ -7,10 +8,11 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 
-namespace MassEmailSender
+namespace MassEmailSender.Forms
 {
     public partial class FormMain : Form
     {
+        private ILogger _logger = LogManager.GetLogger(typeof(FormMain));
         private ExcelPackage _currentPackage;
         private int _limit = 0;
         private Dictionary<string, List<string>> _mailAttatchmentDict = new Dictionary<string, List<string>>();
@@ -19,6 +21,7 @@ namespace MassEmailSender
         private string _body = string.Empty;
         private SmtpMailSender _smtpMail;
 
+        private LogViewer _logForm;
         public string MailServer { get; set; } = "mail.hdsaison.com.vn";
         public int Port { get; set; } = 25;
         public int TotalEmails { get; private set; }
@@ -30,13 +33,22 @@ namespace MassEmailSender
 
         public FormMain()
         {
+            _logForm = new LogViewer();
+            LogManager.MyLogForm = _logForm;
             _smtpMail = new SmtpMailSender(MailServer, Port);
             _smtpMail.OnEmailSendingThreadExit += _smtpMail_OnEmailSendingThreadExit;
             _smtpMail.OnEmailSendingProgressChangedExit += _smtpMail_OnEmailSendingProgressChangedExit;
             InitializeComponent();
             ReadEmailContentConfig();
+            Test();
         }
-
+        private void Test()
+        {
+#if DEBUG
+            textBoxSmtpAccountName.Text = "rept_service";
+            textBoxSmtpAccountPwd.Text = "$$@S3rv1c3";
+#endif
+        }
         private void _smtpMail_OnEmailSendingProgressChangedExit(object sender, EmailSendingProgressChangedArgs e)
         {
             Invoke((Action)delegate {
@@ -107,7 +119,7 @@ namespace MassEmailSender
         {
             SetVer(Program.Version);
         }
-        private bool VadidateSend()
+        private bool VadidateInputs()
         {
             if (_jobs.Count < 1)
             {
@@ -116,8 +128,13 @@ namespace MassEmailSender
             }
             if (textBoxSmtpAccountName.Text.Length < 1 || textBoxSmtpAccountPwd.Text.Length < 1)
             {
-                if (MessageBox.Show(this, "Are you sure to start with empty SMTP account?", "Confirm", MessageBoxButtons.YesNo) != DialogResult.Yes)
-                    return false;
+                MessageBox.Show(this, "Enter sender's account", "Confirm");
+                return false;
+            }
+            if(textBoxCc.Text.Length > 0 && !textBoxCc.Text.Contains(HdssEmail))
+            {
+                MessageBox.Show(this, "Only Cc to HDSS email is allowed", "Confirm");
+                return false;
             }
             if(checkBoxRoute.Checked)
             {
@@ -126,13 +143,18 @@ namespace MassEmailSender
                     MessageBox.Show("Add address to route to!");
                     return false;
                 }
+                if(!textBoxRouteTo.Text.Contains(HdssEmail))
+                {
+                    MessageBox.Show("Only route to HDSS email address is allowed!");
+                    return false;
+                }
             }
             return true;
         }
         //TODO: catch ex
         private void ButtonSend_Click(object sender, EventArgs e)
         {
-            if (!VadidateSend())
+            if (!VadidateInputs())
                 return;
             try
             {
@@ -167,6 +189,12 @@ namespace MassEmailSender
                 _smtpMail.EnqueueEmail(emails);
                 _smtpMail.StartSending();
                 SetProgressLabel("Connecting...");
+            }
+            catch(InvalidDataException ex) //invalid email stuff goes here
+            {
+                MessageBox.Show(this, ex.Message, "Invalid", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                _logger.Log(ex.Message + "-> cancel jobs");
+                ReadyControlSet();
             }
             catch (Exception ex)
             {
@@ -343,6 +371,25 @@ namespace MassEmailSender
                     MessageBox.Show("Fail to delete job!");
                 }
             }
+        }
+        private void CloseFile()
+        {
+            comboBoxGroup.Items.Clear();
+            comboBoxSheet.Items.Clear();
+            dataGridViewMailJob.Rows.Clear();
+            _jobs.Clear();
+            _currentPackage.Dispose();
+            _mailAttatchmentDict.Clear();
+            _logger.Log("Cleared.");
+        }
+        private void logToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            _logForm.Show();
+        }
+
+        private void closeFileToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            CloseFile();
         }
     }
 }

@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-namespace MassEmailSender
+namespace MassEmailSender.Forms
 {
     public partial class FormMain
     {
@@ -13,14 +13,15 @@ namespace MassEmailSender
         private const string EmailContentFolder = "content";
         private const string EmailSubjectFile = "subject.txt";
         private const string EmailContentFile = "body.txt";
+        private const string HdssEmail = "@hdsaison.com.vn";
 
-        public string DefaultSuffix
-        {
-            get
-            {
-                return textBoxSuffix.Text;
-            }
-        }
+        //public string DefaultSuffix
+        //{
+        //    get
+        //    {
+        //        return textBoxSuffix.Text;
+        //    }
+        //}
 
         private List<MimeMessage> MakeEmails(Dictionary<string, List<string>> mailAttatchmentDict)
         {
@@ -47,15 +48,34 @@ namespace MassEmailSender
             return emails;
         }
         
-
+        private bool CheckHdssEmail(Dictionary<string, List<string>> dict, MailJob job)
+        {
+            bool flag = true;
+            foreach (var pair in dict)
+            {
+                if(!pair.Key.Contains(HdssEmail))
+                {
+                    _logger.Log($"Illegal email -> sheet: {job.SheetName} | value: {pair.Key}");
+                    flag = false;
+                }
+            }
+            return flag;
+        }
         private Dictionary<string, List<string>> MakeExcelFiles(List<MailJob> jobs, ExcelPackage package)
         {
             //check if folder exists
             Directory.CreateDirectory($"{Program.ExeDir}\\{TempFolderName}");
             var dict = new Dictionary<string, List<string>>();
+            bool valid = true;
             foreach (var job in jobs)
             {
                 var contentDict = ExcelUltility.MapContentAddress(package.Workbook.Worksheets[job.SheetName], job.Group);
+                if (!CheckHdssEmail(contentDict, job))
+                {
+                    valid = false;
+                    continue;
+                }
+
                 foreach (var group in contentDict)
                 {
                     string fullFilename = $"{Program.ExeDir}\\{TempFolderName}\\" +
@@ -69,6 +89,8 @@ namespace MassEmailSender
                     AddOrCreateNewList(dict, group.Key, fullFilename);
                 }
             }
+            if (!valid)
+                throw new InvalidDataException("Invalid email.");
             return dict;
         }
         public static void AddOrCreateNewList<T>(Dictionary<string, List<T>> dict, string key, T item)
@@ -86,7 +108,7 @@ namespace MassEmailSender
         private string StripIlligalChar(string email)
         {
             string invalid = new string(Path.GetInvalidFileNameChars()) + new string(Path.GetInvalidPathChars());
-            string returnString = email.Replace(DefaultSuffix, "").Replace("-", "").Replace(".", "");
+            string returnString = email.Replace(HdssEmail, "").Replace("-", "").Replace(".", "");
             foreach (char c in Path.GetInvalidFileNameChars())
             {
                 returnString = returnString.Replace(c, '_');
@@ -113,14 +135,14 @@ namespace MassEmailSender
             email.From.Add(new MailboxAddress(CheckSuffix(textBoxSmtpAccountName.Text)));
             if (checkBoxRoute.Checked)
             {
-                email.To.Add(new MailboxAddress(CheckSuffix(textBoxRouteTo.Text)));
+                email.To.Add(new MailboxAddress(textBoxRouteTo.Text));
             }
             else
             {
-                email.To.Add(new MailboxAddress(CheckSuffix(recipient)));
+                email.To.Add(new MailboxAddress(recipient));
             }
             if (textBoxCc.Text.Length > 0)
-                email.Cc.Add(new MailboxAddress(CheckSuffix(textBoxCc.Text)));
+                email.Cc.Add(new MailboxAddress(textBoxCc.Text));
         }
 
         private TextPart MakeBodyPart()
@@ -131,7 +153,7 @@ namespace MassEmailSender
         }
 
         private string CheckSuffix(string address)
-         => address.Contains("@") ? address : address + DefaultSuffix;
+         => address.Contains("@") ? address : address + HdssEmail;
 
         private static Random random = new Random();
 

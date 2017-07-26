@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using MassEmailSender.Forms;
 using System.Windows.Forms;
 
 namespace MassEmailSender

@@ -8,6 +8,7 @@ using System.Net.Sockets;
 using MailKit.Security;
 using System.Text;
 using System.IO;
+using Log;
 
 namespace EmailSender
 {
@@ -22,6 +23,7 @@ namespace EmailSender
         public event EmailSendingProgressChangedEventHandler OnEmailSendingProgressChangedExit;
 
         private readonly SmtpClient _client;
+        private ILogger _logger = LogManager.GetLogger(typeof(SmtpMailSender));
         public bool IsThreadRunning { get; private set; }
         public bool CancelThread { get; set; } = false;
         public string Username { get; set; }
@@ -134,7 +136,7 @@ namespace EmailSender
                     Thread.Sleep(sleep);
                     if (!MailQueue.TryDequeue(out MimeMessage anEmail))
                     {
-                        Log("All emails processed -> stop thread");
+                        Log("All emails processed -> stop thread", true);
                         return;
                     }
                     //_client.Timeout = 1;
@@ -150,26 +152,26 @@ namespace EmailSender
             catch(SocketException ex) when (ex.Message.Contains("No such host is known"))
             {
                 exMessage = "Invalid host name";
-                Log(exMessage);
+                Log(exMessage, true);
                 unrecoverableEx = true;
             }
             catch (SocketException ex) when (ex.Message.Contains("No connection could be made because the target machine actively refused it"))
             {
                 exMessage = "Invalid port number";
-                Log(exMessage);
+                Log(exMessage, true);
                 unrecoverableEx = true;
             }
             catch (AuthenticationException ex) when (ex.Message.Contains("AuthenticationInvalidCredentials"))
             {
                 exMessage = "Invalid credential";
-                Log(exMessage);
+                Log(exMessage, true);
                 unrecoverableEx = true;
             }
             catch (Exception ex)
             {
                 unrecoverableEx = true;
                 exMessage = "Unhandled exception in thread.";
-                Log(exMessage);
+                Log(exMessage, true);
                 Log(ex.Message ?? string.Empty);
                 Log(ex.StackTrace);
                 if (ex.InnerException != null)
@@ -190,9 +192,18 @@ namespace EmailSender
             }
         }
         private static string LogPath => string.Format(@"{0}\{1}", MassEmailSender.Program.ExeDir, "log.txt");
-        private static void Log(string log)
+        private object _lock = new object();
+        private void Log(string log, bool showInViewer = false)
         {
             File.AppendAllLines(LogPath, new List<string> { FormatLog(log) }, Encoding.UTF8);
+            lock (_lock)
+            {
+                if (showInViewer)
+                {
+                    _logger.Log(log);
+                }
+            }
+
         }
         private static string FormatLog(string log)
         {

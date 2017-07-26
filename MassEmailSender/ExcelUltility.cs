@@ -1,4 +1,5 @@
-﻿using OfficeOpenXml;
+﻿using Log;
+using OfficeOpenXml;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,6 +8,7 @@ namespace MassEmailSender
 {
     public static class ExcelUltility
     {
+        private static ILogger _logger = LogManager.GetLogger(typeof(ExcelUltility));
         /// <summary>
         /// 1st row is header, group all content to dict
         /// </summary>
