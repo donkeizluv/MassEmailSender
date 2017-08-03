@@ -53,9 +53,10 @@ namespace MassEmailSender.Forms
             bool flag = true;
             foreach (var pair in dict)
             {
+                if (string.IsNullOrEmpty(pair.Key)) continue;
                 if(!pair.Key.Contains(HdssEmail))
                 {
-                    _logger.Log($"Illegal email -> sheet: {job.SheetName} | value: {pair.Key}");
+                    _logger.Log($"Illegal email -> sheet: {job.SheetName} | column: {job.Group} |value: {pair.Key}");
                     flag = false;
                 }
             }

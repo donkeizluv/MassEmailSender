@@ -17,14 +17,10 @@ namespace MassEmailSender.Forms
             InitializeComponent();
         }
         public void AppendLog(string text)
-        {
-            if(InvokeRequired)
-            {
-                Invoke((Action)delegate {
-                    AddToGrid(text);
-                });
-            }
-            AddToGrid(text);
+        { 
+            Invoke((Action)delegate {
+                AddToGrid(text);
+            });
         }
         private void AddToGrid(string text)
         {
