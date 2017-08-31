@@ -129,6 +129,7 @@ namespace EmailSender
             string exMessage = string.Empty;
             try
             {
+                //throw new AggregateException("test");
                 _client.Connect(Server, Port, false);
                 _client.Authenticate(Username, Pwd);
                 while (!CancelThread)
@@ -171,6 +172,7 @@ namespace EmailSender
             {
                 unrecoverableEx = true;
                 exMessage = "Unhandled exception in thread.";
+                Log(ex.GetType().ToString());
                 Log(exMessage, true);
                 Log(ex.Message ?? string.Empty);
                 Log(ex.StackTrace);
