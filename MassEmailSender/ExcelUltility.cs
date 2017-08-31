@@ -2,6 +2,7 @@
 using OfficeOpenXml;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 namespace MassEmailSender
@@ -166,17 +167,17 @@ namespace MassEmailSender
                 int row = 1;
                 foreach (var address in addressList)
                 {
-                    //if(string.Compare(copyFromSheet.Cells[address].StyleName, "Hyperlink") == 0)
-                    //{
-                    //    //epplus hyperlink style bug
-                    //    //cause AgrumentOutOfRange shit storm
-                    //    //possible other style name fuck this !
-                    //    copyFromSheet.Cells[address].StyleName = "Normal"; //this works but causes whole range to normal
-                    //}
-                    CleanHyperlinkStyleShit(copyFromSheet, address);
-                    copyFromSheet.Cells[address].Copy(sheet.Cells[row, 1], ExcelRangeCopyOptionFlags.ExcludeFormulas);
+                    try
+                    {
+                        copyFromSheet.Cells[address].Copy(sheet.Cells[row, 1], ExcelRangeCopyOptionFlags.ExcludeFormulas);
+                    }
+                    catch (ArgumentOutOfRangeException) //clean style then try again
+                    {
+                        //Debug.Print($"{address} contains unsupported format");
+                        CleanUnsupportedStyles(copyFromSheet, address);
+                        copyFromSheet.Cells[address].Copy(sheet.Cells[row, 1], ExcelRangeCopyOptionFlags.ExcludeFormulas);
+                    }
                     row++;
-
                 }
                 if (fitAllCol)
                 {
@@ -186,20 +187,32 @@ namespace MassEmailSender
             }
             return true;
         }
-        private static void CleanHyperlinkStyleShit(ExcelWorksheet ws, string address)
+        private static void CleanUnsupportedStyles(ExcelWorksheet ws, string address, string resetTo = "Normal")
         {
-            //for some fucking unknown reason
-            //ExcelRange ref object sometimes doesnt hold the correct infomation
-            //so i have to use ws.Cells[address] everywhere
             for (int row = ws.Cells[address].Start.Row; row < ws.Cells[address].Rows + ws.Cells[address].Start.Row; row++)
             {
                 for (int col = 1; col <= ws.Cells[address].Columns; col++)
                 {
-                    if (string.Compare(ws.Cells[row, col].StyleName, "Hyperlink") == 0)
-                        ws.Cells[row, col].StyleName = "Normal";
+                    ws.Cells[row, col].StyleName = resetTo;
                 }
             }
         }
+        //private static void CleanHyperlinkStyleShit(ExcelWorksheet ws, string address)
+        //{
+        //    //for some fucking unknown reason
+        //    //ExcelRange ref object sometimes doesnt hold the correct infomation
+        //    //so i have to use ws.Cells[address] everywhere
+        //    for (int row = ws.Cells[address].Start.Row; row < ws.Cells[address].Rows + ws.Cells[address].Start.Row; row++)
+        //    {
+        //        for (int col = 1; col <= ws.Cells[address].Columns; col++)
+        //        {
+        //            if (string.Compare(ws.Cells[row, col].StyleName, "Hyperlink") == 0)
+        //                ws.Cells[row, col].StyleName = "Normal";
+        //        }
+        //    }
+        //}
+        private static List<string> NotSupportedStyle = new List<string>();
+
         //write list to new excel file
         public static bool WriteExcel(string fullName, string sheetName, List<List<string>> contentArray)
         {

@@ -103,11 +103,13 @@ namespace MassEmailSender.Forms
             catch (IOException)
             {
                 MessageBox.Show("Fail to read config");
+                Close();
                 Environment.FailFast("read config exception");
             }
             catch (UnauthorizedAccessException)
             {
                 MessageBox.Show("Fail to read config: Unauthorized");
+                Close();
                 Environment.FailFast("read config exception");
             }
         }
