@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace MassEmailSender.Forms
 {
@@ -62,7 +63,7 @@ namespace MassEmailSender.Forms
             }
             return flag;
         }
-        private Dictionary<string, List<string>> MakeExcelFiles(List<MailJob> jobs, ExcelPackage package)
+        private async Task<Dictionary<string, List<string>>> MakeExcelFiles(List<MailJob> jobs, ExcelPackage package, IProgress<int> progress)
         {
             //check if folder exists
             Directory.CreateDirectory($"{Program.ExeDir}\\{TempFolderName}");
@@ -81,11 +82,8 @@ namespace MassEmailSender.Forms
                 {
                     string fullFilename = $"{Program.ExeDir}\\{TempFolderName}\\" +
                         $"{StripIlligalChar(group.Key)}-{StripIlligalChar(job.SheetName)}-{RandomString(6)}.xlsx";
-                    if (!ExcelUltility.WriteExcel(fullFilename, job.SheetName, group.Value, job.Sheet))
-                    {
-                        //TODO: handle this!
-                        throw new Exception("wtf?");
-                    }
+                    await ExcelUltility.WriteExcelAsync(fullFilename, job.SheetName, group.Value, job.Sheet,
+                        new Progress<int>(p => SetProgressLabel($"Split: {group.Key} - {p}%")));
                     //add to dict
                     AddOrCreateNewList(dict, group.Key, fullFilename);
                 }

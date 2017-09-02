@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace MassEmailSender
 {
@@ -149,7 +150,6 @@ namespace MassEmailSender
             }
             return list;
         }
-        
         /// <summary>
         /// write to new excel file, copy method (preserve format)
         /// </summary>
@@ -157,9 +157,24 @@ namespace MassEmailSender
         /// <param name="sheetName"></param>
         /// <param name="addressList"></param>
         /// <param name="copyFromSheet"></param>
+        /// <param name="progress"></param>
         /// <param name="fitAllCol"></param>
         /// <returns></returns>
-        public static bool WriteExcel(string fullName, string sheetName, List<string> addressList, ExcelWorksheet copyFromSheet, bool fitAllCol = true)
+        public static async Task WriteExcelAsync(string fullName, string sheetName, List<string> addressList, ExcelWorksheet copyFromSheet, IProgress<int> progress, bool fitAllCol = true)
+        {
+            await Task.Run(() => WriteExcel(fullName, sheetName, addressList, copyFromSheet, progress, fitAllCol));
+        }
+        /// <summary>
+        /// write to new excel file, copy method (preserve format)
+        /// </summary>
+        /// <param name="fullName"></param>
+        /// <param name="sheetName"></param>
+        /// <param name="addressList"></param>
+        /// <param name="copyFromSheet"></param>
+        /// <param name="progress"></param>
+        /// <param name="fitAllCol"></param>
+        /// <returns></returns>
+        public static void WriteExcel(string fullName, string sheetName, List<string> addressList, ExcelWorksheet copyFromSheet, IProgress<int> progress, bool fitAllCol = true)
         {
             using (var package = new ExcelPackage(new System.IO.FileInfo(fullName)))
             {
@@ -169,14 +184,21 @@ namespace MassEmailSender
                 {
                     try
                     {
+                        CleanInvalidStyles(copyFromSheet, address);
                         copyFromSheet.Cells[address].Copy(sheet.Cells[row, 1], ExcelRangeCopyOptionFlags.ExcludeFormulas);
                     }
                     catch (ArgumentOutOfRangeException) //clean style then try again
                     {
-                        //Debug.Print($"{address} contains unsupported format");
-                        CleanUnsupportedStyles(copyFromSheet, address);
+#if DEBUG
+                        Debug.Print($"{address} contains invalid styles");
+#endif
+                        //update invalids
+                        UpdateInvalidStylesCache(copyFromSheet, address);
+                        CleanInvalidStyles(copyFromSheet, address);
+                        //try again
                         copyFromSheet.Cells[address].Copy(sheet.Cells[row, 1], ExcelRangeCopyOptionFlags.ExcludeFormulas);
                     }
+                    progress?.Report(row * 100 / addressList.Count);
                     row++;
                 }
                 if (fitAllCol)
@@ -185,15 +207,54 @@ namespace MassEmailSender
                 }
                 package.Save();
             }
-            return true;
         }
-        private static void CleanUnsupportedStyles(ExcelWorksheet ws, string address, string resetTo = "Normal")
+        private static readonly List<string> InvalidStylesCache = new List<string>();
+        private static void UpdateInvalidStylesCache(ExcelWorksheet ws, string address)
+        {
+            using (var testPackage = new ExcelPackage())
+            {
+                var testExcelWorksheet = testPackage.Workbook.Worksheets.Add("test");
+                for (int row = ws.Cells[address].Start.Row; row < ws.Cells[address].Rows + ws.Cells[address].Start.Row; row++)
+                {
+                    for (int col = 1; col <= ws.Cells[address].Columns; col++)
+                    {
+                        //skip if already been cached
+                        if (InvalidStylesCache.Contains(ws.Cells[row, col].StyleName))
+                        {
+#if DEBUG
+                            Debug.Print($"{ws.Cells[row, col].StyleName} already cached -> skip check");
+#endif
+                            continue;
+                        }
+                        //test for exception
+                        try
+                        {
+                            ws.Cells[row, col].Copy(testExcelWorksheet.Cells[1, 1]);
+                        }
+                        catch (ArgumentOutOfRangeException)
+                        {
+                            InvalidStylesCache.Add(ws.Cells[row, col].StyleName);
+#if DEBUG
+                            Debug.Print($"cache new invalid style: {ws.Cells[row, col].StyleName}");
+#endif
+                        }
+                    }
+                }
+            }
+        }
+        private static void CleanInvalidStyles(ExcelWorksheet ws, string address, string resetTo = "Normal")
         {
             for (int row = ws.Cells[address].Start.Row; row < ws.Cells[address].Rows + ws.Cells[address].Start.Row; row++)
             {
                 for (int col = 1; col <= ws.Cells[address].Columns; col++)
                 {
-                    ws.Cells[row, col].StyleName = resetTo;
+                    if(InvalidStylesCache.Contains(ws.Cells[row, col].StyleName))
+                    {
+#if DEBUG
+                        Debug.Print($"Cleaned: {ws.Cells[row, col].StyleName} -> {resetTo}");
+#endif
+                        ws.Cells[row, col].StyleName = resetTo;
+                    }
                 }
             }
         }
@@ -211,7 +272,6 @@ namespace MassEmailSender
         //        }
         //    }
         //}
-        private static List<string> NotSupportedStyle = new List<string>();
 
         //write list to new excel file
         public static bool WriteExcel(string fullName, string sheetName, List<List<string>> contentArray)

@@ -154,7 +154,7 @@ namespace MassEmailSender.Forms
             return true;
         }
         //TODO: catch ex
-        private void ButtonSend_Click(object sender, EventArgs e)
+        private async void ButtonSend_Click(object sender, EventArgs e)
         {
             if (!VadidateInputs())
                 return;
@@ -166,7 +166,8 @@ namespace MassEmailSender.Forms
                 EnableControls(false);
                 buttonCancel.Enabled = true;
                 //spliting files
-                var emailAttDict = MakeExcelFiles(_jobs, _currentPackage);
+                var emailAttDict = await MakeExcelFiles(_jobs, _currentPackage, 
+                    new Progress<int>(p => SetProgressLabel($"Spliting {p}%")));
                 var emails = MakeEmails(emailAttDict);
                 //if (emails == null || emails.Count < 1)
                 //{
