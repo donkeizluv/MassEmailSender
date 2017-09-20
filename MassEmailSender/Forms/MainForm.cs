@@ -387,12 +387,16 @@ namespace MassEmailSender.Forms
         }
         private void logToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            _logForm.Show();
+            Invoke((Action)delegate {
+                _logForm.Show();
+            });
         }
 
         private void closeFileToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            CloseFile();
+            Invoke((Action)delegate {
+                CloseFile();
+            });
         }
     }
 }

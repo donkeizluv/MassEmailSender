@@ -75,7 +75,7 @@ namespace EmailSender
 
         public string EmailAccount { get; set; }
         public string Server { get; }
-        public int SleepInterval { get; set; } = 3500;
+        public int SleepInterval { get; set; } = 1500;
         public int Timeout { get; set; } = 30000;
         public ConcurrentQueue<MimeMessage> MailQueue { get; set; } = new ConcurrentQueue<MimeMessage>();
 
@@ -140,14 +140,24 @@ namespace EmailSender
                         Log("All emails processed -> stop thread", true);
                         return;
                     }
-                    //_client.Timeout = 1;
-                    Log(string.Format("Start sending email to {0}, total recipients: {1}", anEmail.To[0],
-                        anEmail.To.Count));
-                    _client.Send(anEmail);
-                    Log("Sent sucessfully.");
-                    RaiseOnSendingProgressChanged(emailCount);
-                    sleep = 0;
-                    emailCount++;
+                    try //retry
+                    {
+                        //_client.Timeout = 1;
+                        Log(string.Format("Start sending email to {0}, total recipients: {1}", anEmail.To[0],
+                            anEmail.To.Count));
+                        //throw new SmtpCommandException(SmtpErrorCode.MessageNotAccepted, SmtpStatusCode.AuthenticationChallenge, "Connection timed out");
+                        _client.Send(anEmail);
+                        Log("Sent sucessfully.");
+                        RaiseOnSendingProgressChanged(emailCount);
+                        sleep = 0;
+                        emailCount++;
+                    }
+                    catch (SmtpCommandException ex) when (ex.Message.Contains("Connection timed out"))
+                    {
+                        Log($"Timed out -> sleep  for {SleepInterval} then retry.", true);
+                        MailQueue.Enqueue(anEmail);
+                        sleep = SleepInterval;
+                    }
                 }
             }
             catch(SocketException ex) when (ex.Message.Contains("No such host is known"))
@@ -158,7 +168,7 @@ namespace EmailSender
             }
             catch (SocketException ex) when (ex.Message.Contains("No connection could be made because the target machine actively refused it"))
             {
-                exMessage = "Invalid port number";
+                exMessage = "Invalid port number or SMTP is closed";
                 Log(exMessage, true);
                 unrecoverableEx = true;
             }
