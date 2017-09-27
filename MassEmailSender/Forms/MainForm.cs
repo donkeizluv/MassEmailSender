@@ -266,6 +266,11 @@ namespace MassEmailSender.Forms
                     comboBoxSheet.SelectedIndex = 0;
                 }
             }
+            catch (NullReferenceException ex)
+            {
+                MessageBox.Show("Cant read XLSX, try Save As then open again.");
+                return;
+            }
             catch (IOException ex)
             {
 

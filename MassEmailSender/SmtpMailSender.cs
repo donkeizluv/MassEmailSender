@@ -9,6 +9,7 @@ using MailKit.Security;
 using System.Text;
 using System.IO;
 using Log;
+using MailKit;
 
 namespace EmailSender
 {
@@ -151,6 +152,12 @@ namespace EmailSender
                         RaiseOnSendingProgressChanged(emailCount);
                         sleep = 0;
                         emailCount++;
+                    }
+                    catch(ServiceNotConnectedException ex) //random drop of connection
+                    {
+                        Log($"Dropped connection -> sleep  for {SleepInterval} then retry.", true);
+                        MailQueue.Enqueue(anEmail);
+                        sleep = SleepInterval;
                     }
                     catch (SmtpCommandException ex) when (ex.Message.Contains("Connection timed out"))
                     {
