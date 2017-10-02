@@ -12,9 +12,13 @@ namespace MassEmailSender.Forms
 {
     public partial class FormMain : Form
     {
+
+
         private ILogger _logger = LogManager.GetLogger(typeof(FormMain));
         private ExcelPackage _currentPackage;
         private int _limit = 0;
+        private static string SkipListFilename => string.Format(@"{0}\{1}", Program.ExeDir, "skip.txt");
+        private List<string> _skipList = new List<string>();
         private Dictionary<string, List<string>> _mailAttatchmentDict = new Dictionary<string, List<string>>();
         private List<MailJob> _jobs = new List<MailJob>();
         private string _subject = string.Empty;
@@ -34,7 +38,7 @@ namespace MassEmailSender.Forms
         public FormMain()
         {
             _logForm = new LogViewer();
-            LogManager.MyLogForm = _logForm;
+            //LogManager.MyLogForm = _logForm;
             _smtpMail = new SmtpMailSender(MailServer, Port);
             _smtpMail.OnEmailSendingThreadExit += _smtpMail_OnEmailSendingThreadExit;
             _smtpMail.OnEmailSendingProgressChangedExit += _smtpMail_OnEmailSendingProgressChangedExit;
@@ -42,6 +46,7 @@ namespace MassEmailSender.Forms
             ReadEmailContentConfig();
             Test();
         }
+        
         private void Test()
         {
 #if DEBUG
@@ -168,6 +173,7 @@ namespace MassEmailSender.Forms
                 //spliting files
                 var emailAttDict = await MakeExcelFiles(_jobs, _currentPackage, 
                     new Progress<int>(p => SetProgressLabel($"Spliting {p}%")));
+                LogManager.LogRecipients(emailAttDict.Select(key => key.Key).ToList());
                 var emails = MakeEmails(emailAttDict);
                 //if (emails == null || emails.Count < 1)
                 //{
@@ -186,7 +192,7 @@ namespace MassEmailSender.Forms
                     ReadyControlSet();
                     return;
                 }
-                
+                LogManager.LogSent($"--------Run at: {DateTime.Today.ToString()}--------");
                 //set account
                 _smtpMail.SetSmtpAccount(textBoxSmtpAccountName.Text, textBoxSmtpAccountPwd.Text);
                 _smtpMail.EnqueueEmail(emails);
@@ -287,7 +293,12 @@ namespace MassEmailSender.Forms
                 this.Cursor = Cursors.Arrow;
             }
         }
+        //write all recipients
+   
+        private void ReadSkipList()
+        {
 
+        }
         private void PopulateGroupCbBox(List<string> list)
         {
             comboBoxGroup.Items.Clear();
@@ -402,6 +413,28 @@ namespace MassEmailSender.Forms
             Invoke((Action)delegate {
                 CloseFile();
             });
+        }
+
+        private void buttonLoadSkipList_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                _skipList = File.ReadAllLines(SkipListFilename).ToList();
+                _smtpMail.SkipList = _skipList;
+                labelSkipCount.Text = $"Count: {_skipList.Count}";
+            }
+            catch (Exception)
+            {
+                MessageBox.Show("Failed to load skip list! -> Skip nothing");
+            }
+            
+
+        }
+
+        private void buttonClearSkipList_Click(object sender, EventArgs e)
+        {
+            _skipList.Clear();
+            labelSkipCount.Text = $"Count: 0";
         }
     }
 }

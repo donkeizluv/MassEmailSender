@@ -10,6 +10,7 @@ using System.Text;
 using System.IO;
 using Log;
 using MailKit;
+using System.Linq;
 
 namespace EmailSender
 {
@@ -23,13 +24,14 @@ namespace EmailSender
 
         public event EmailSendingProgressChangedEventHandler OnEmailSendingProgressChangedExit;
 
-        private readonly SmtpClient _client;
+        private SmtpClient _client;
         private ILogger _logger = LogManager.GetLogger(typeof(SmtpMailSender));
         public bool IsThreadRunning { get; private set; }
         public bool CancelThread { get; set; } = false;
         public string Username { get; set; }
         public string Pwd { get; set; }
         public int Port { get; set; } = 25;
+        public List<string> SkipList { get; set; }
         //public readonly Queue<MailMessage> _queueMail = new Queue<MailMessage>();
         private Thread _sendingThread;
 
@@ -42,14 +44,19 @@ namespace EmailSender
         public SmtpMailSender(string server, int port)
         {
             Server = server;
+            Port = port;
+        }
+        private void ConnectClient()
+        {
+            Log("Connecting SMTP...");
             _client = new SmtpClient
             {
                 ServerCertificateValidationCallback = (s, c, h, e) => true,
             };
             _client.AuthenticationMechanisms.Remove("XOAUTH2");
-            Port = port;
+            _client.Connect(Server, Port, false);
+            _client.Authenticate(Username, Pwd);
         }
-
         public void SetSmtpAccount(string userName, string pwd)
         {
             Username = userName;
@@ -120,34 +127,52 @@ namespace EmailSender
         {
             OnEmailSendingProgressChangedExit?.Invoke(this, new EmailSendingProgressChangedArgs(sent));
         }
-
+        private bool SkipEmail(string email)
+        {
+            if (SkipList == null) return false;
+            return SkipList.Contains(email);
+        }
         private void SendingThread()
         {
             int sleep = 0;
             int emailCount = 0;
             int retries = 0;
             bool unrecoverableEx = false;
+            bool reconnectRequired = false;
             string exMessage = string.Empty;
             try
             {
+                ConnectClient();
                 //throw new AggregateException("test");
-                _client.Connect(Server, Port, false);
-                _client.Authenticate(Username, Pwd);
                 while (!CancelThread)
                 {
                     Thread.Sleep(sleep);
+                    if (reconnectRequired)
+                    {
+                        ConnectClient();
+                        reconnectRequired = false;
+                    }
+
                     if (!MailQueue.TryDequeue(out MimeMessage anEmail))
                     {
-                        Log("All emails processed -> stop thread", true);
+                        Log("All emails processed -> stop thread");
                         return;
                     }
+                    string address = anEmail.To.First().ToString();
+                    if (SkipEmail(address))
+                    {
+                        Log($"Skip -> {address}");
+                        continue;
+                    }
+
                     try //retry
                     {
                         //_client.Timeout = 1;
-                        Log(string.Format("Start sending email to {0}, total recipients: {1}", anEmail.To[0],
+                        Log(string.Format("Start sending email to {0}, total recipients: {1}", address,
                             anEmail.To.Count));
                         //throw new SmtpCommandException(SmtpErrorCode.MessageNotAccepted, SmtpStatusCode.AuthenticationChallenge, "Connection timed out");
                         _client.Send(anEmail);
+                        LogManager.LogSent(address);
                         Log("Sent sucessfully.");
                         RaiseOnSendingProgressChanged(emailCount);
                         sleep = 0;
@@ -155,34 +180,36 @@ namespace EmailSender
                     }
                     catch(ServiceNotConnectedException ex) //random drop of connection
                     {
-                        Log($"Dropped connection -> sleep  for {SleepInterval} then retry.", true);
+                        Log($"Dropped connection -> sleep  for {SleepInterval} then retry.");
                         MailQueue.Enqueue(anEmail);
                         sleep = SleepInterval;
+                        reconnectRequired = true;
                     }
                     catch (SmtpCommandException ex) when (ex.Message.Contains("Connection timed out"))
                     {
-                        Log($"Timed out -> sleep  for {SleepInterval} then retry.", true);
+                        Log($"Timed out -> sleep  for {SleepInterval} then retry.");
                         MailQueue.Enqueue(anEmail);
                         sleep = SleepInterval;
+                        reconnectRequired = true;
                     }
                 }
             }
             catch(SocketException ex) when (ex.Message.Contains("No such host is known"))
             {
                 exMessage = "Invalid host name";
-                Log(exMessage, true);
+                Log(exMessage);
                 unrecoverableEx = true;
             }
             catch (SocketException ex) when (ex.Message.Contains("No connection could be made because the target machine actively refused it"))
             {
                 exMessage = "Invalid port number or SMTP is closed";
-                Log(exMessage, true);
+                Log(exMessage);
                 unrecoverableEx = true;
             }
             catch (AuthenticationException ex) when (ex.Message.Contains("AuthenticationInvalidCredentials"))
             {
                 exMessage = "Invalid credential";
-                Log(exMessage, true);
+                Log(exMessage);
                 unrecoverableEx = true;
             }
             catch (Exception ex)
@@ -190,7 +217,7 @@ namespace EmailSender
                 unrecoverableEx = true;
                 exMessage = "Unhandled exception in thread.";
                 Log(ex.GetType().ToString());
-                Log(exMessage, true);
+                Log(exMessage);
                 Log(ex.Message ?? string.Empty);
                 Log(ex.StackTrace);
                 if (ex.InnerException != null)
@@ -212,17 +239,9 @@ namespace EmailSender
         }
         private static string LogPath => string.Format(@"{0}\{1}", MassEmailSender.Program.ExeDir, "log.txt");
         private object _lock = new object();
-        private void Log(string log, bool showInViewer = false)
+        private void Log(string log)
         {
             File.AppendAllLines(LogPath, new List<string> { FormatLog(log) }, Encoding.UTF8);
-            lock (_lock)
-            {
-                if (showInViewer)
-                {
-                    _logger.Log(log);
-                }
-            }
-
         }
         private static string FormatLog(string log)
         {

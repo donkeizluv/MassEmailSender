@@ -66,6 +66,9 @@
             this.buttonCancel = new System.Windows.Forms.Button();
             this.labelProgess = new System.Windows.Forms.Label();
             this.labelVer = new System.Windows.Forms.Label();
+            this.buttonLoadSkipList = new System.Windows.Forms.Button();
+            this.buttonClearSkipList = new System.Windows.Forms.Button();
+            this.labelSkipCount = new System.Windows.Forms.Label();
             this.menuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridViewMailJob)).BeginInit();
             this.groupBoxSetting.SuspendLayout();
@@ -129,21 +132,21 @@
             // openToolStripMenuItem
             // 
             this.openToolStripMenuItem.Name = "openToolStripMenuItem";
-            this.openToolStripMenuItem.Size = new System.Drawing.Size(145, 26);
+            this.openToolStripMenuItem.Size = new System.Drawing.Size(181, 26);
             this.openToolStripMenuItem.Text = "Open";
             this.openToolStripMenuItem.Click += new System.EventHandler(this.OpenToolStripMenuItem_Click);
             // 
             // closeFileToolStripMenuItem
             // 
             this.closeFileToolStripMenuItem.Name = "closeFileToolStripMenuItem";
-            this.closeFileToolStripMenuItem.Size = new System.Drawing.Size(145, 26);
+            this.closeFileToolStripMenuItem.Size = new System.Drawing.Size(181, 26);
             this.closeFileToolStripMenuItem.Text = "Close file";
             this.closeFileToolStripMenuItem.Click += new System.EventHandler(this.closeFileToolStripMenuItem_Click);
             // 
             // exitToolStripMenuItem
             // 
             this.exitToolStripMenuItem.Name = "exitToolStripMenuItem";
-            this.exitToolStripMenuItem.Size = new System.Drawing.Size(145, 26);
+            this.exitToolStripMenuItem.Size = new System.Drawing.Size(181, 26);
             this.exitToolStripMenuItem.Text = "Exit";
             this.exitToolStripMenuItem.Click += new System.EventHandler(this.ExitToolStripMenuItem_Click);
             // 
@@ -157,8 +160,9 @@
             // 
             // logToolStripMenuItem
             // 
+            this.logToolStripMenuItem.Enabled = false;
             this.logToolStripMenuItem.Name = "logToolStripMenuItem";
-            this.logToolStripMenuItem.Size = new System.Drawing.Size(109, 26);
+            this.logToolStripMenuItem.Size = new System.Drawing.Size(181, 26);
             this.logToolStripMenuItem.Text = "Log";
             this.logToolStripMenuItem.Click += new System.EventHandler(this.logToolStripMenuItem_Click);
             // 
@@ -173,13 +177,13 @@
             // aboutToolStripMenuItem
             // 
             this.aboutToolStripMenuItem.Name = "aboutToolStripMenuItem";
-            this.aboutToolStripMenuItem.Size = new System.Drawing.Size(125, 26);
+            this.aboutToolStripMenuItem.Size = new System.Drawing.Size(181, 26);
             this.aboutToolStripMenuItem.Text = "About";
             this.aboutToolStripMenuItem.Click += new System.EventHandler(this.AboutToolStripMenuItem_Click);
             // 
             // buttonSend
             // 
-            this.buttonSend.Location = new System.Drawing.Point(197, 494);
+            this.buttonSend.Location = new System.Drawing.Point(197, 528);
             this.buttonSend.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.buttonSend.Name = "buttonSend";
             this.buttonSend.Size = new System.Drawing.Size(75, 33);
@@ -292,6 +296,9 @@
             // 
             // groupBoxSetting
             // 
+            this.groupBoxSetting.Controls.Add(this.labelSkipCount);
+            this.groupBoxSetting.Controls.Add(this.buttonClearSkipList);
+            this.groupBoxSetting.Controls.Add(this.buttonLoadSkipList);
             this.groupBoxSetting.Controls.Add(this.textBoxSuffix);
             this.groupBoxSetting.Controls.Add(this.label5);
             this.groupBoxSetting.Controls.Add(this.groupBox1);
@@ -304,7 +311,7 @@
             this.groupBoxSetting.Controls.Add(this.checkBoxRoute);
             this.groupBoxSetting.Location = new System.Drawing.Point(16, 305);
             this.groupBoxSetting.Name = "groupBoxSetting";
-            this.groupBoxSetting.Size = new System.Drawing.Size(529, 184);
+            this.groupBoxSetting.Size = new System.Drawing.Size(529, 216);
             this.groupBoxSetting.TabIndex = 18;
             this.groupBoxSetting.TabStop = false;
             this.groupBoxSetting.Text = "Setting";
@@ -413,7 +420,7 @@
             // buttonCancel
             // 
             this.buttonCancel.Enabled = false;
-            this.buttonCancel.Location = new System.Drawing.Point(289, 494);
+            this.buttonCancel.Location = new System.Drawing.Point(289, 528);
             this.buttonCancel.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.buttonCancel.Name = "buttonCancel";
             this.buttonCancel.Size = new System.Drawing.Size(75, 33);
@@ -428,7 +435,7 @@
             this.labelProgess.Dock = System.Windows.Forms.DockStyle.Bottom;
             this.labelProgess.Font = new System.Drawing.Font("Consolas", 10.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.labelProgess.ForeColor = System.Drawing.Color.Red;
-            this.labelProgess.Location = new System.Drawing.Point(0, 536);
+            this.labelProgess.Location = new System.Drawing.Point(0, 573);
             this.labelProgess.Name = "labelProgess";
             this.labelProgess.Size = new System.Drawing.Size(565, 37);
             this.labelProgess.TabIndex = 30;
@@ -438,17 +445,48 @@
             // labelVer
             // 
             this.labelVer.AutoSize = true;
-            this.labelVer.Location = new System.Drawing.Point(453, 510);
+            this.labelVer.Location = new System.Drawing.Point(453, 544);
             this.labelVer.Name = "labelVer";
             this.labelVer.Size = new System.Drawing.Size(47, 17);
             this.labelVer.TabIndex = 33;
             this.labelVer.Text = "Ver. X";
             // 
+            // buttonLoadSkipList
+            // 
+            this.buttonLoadSkipList.Location = new System.Drawing.Point(296, 147);
+            this.buttonLoadSkipList.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.buttonLoadSkipList.Name = "buttonLoadSkipList";
+            this.buttonLoadSkipList.Size = new System.Drawing.Size(105, 33);
+            this.buttonLoadSkipList.TabIndex = 34;
+            this.buttonLoadSkipList.Text = "Load skip list";
+            this.buttonLoadSkipList.UseVisualStyleBackColor = true;
+            this.buttonLoadSkipList.Click += new System.EventHandler(this.buttonLoadSkipList_Click);
+            // 
+            // buttonClearSkipList
+            // 
+            this.buttonClearSkipList.Location = new System.Drawing.Point(429, 147);
+            this.buttonClearSkipList.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.buttonClearSkipList.Name = "buttonClearSkipList";
+            this.buttonClearSkipList.Size = new System.Drawing.Size(78, 33);
+            this.buttonClearSkipList.TabIndex = 35;
+            this.buttonClearSkipList.Text = "Clear list";
+            this.buttonClearSkipList.UseVisualStyleBackColor = true;
+            this.buttonClearSkipList.Click += new System.EventHandler(this.buttonClearSkipList_Click);
+            // 
+            // labelSkipCount
+            // 
+            this.labelSkipCount.AutoSize = true;
+            this.labelSkipCount.Location = new System.Drawing.Point(301, 189);
+            this.labelSkipCount.Name = "labelSkipCount";
+            this.labelSkipCount.Size = new System.Drawing.Size(61, 17);
+            this.labelSkipCount.TabIndex = 34;
+            this.labelSkipCount.Text = "Count: 0";
+            // 
             // FormMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(565, 573);
+            this.ClientSize = new System.Drawing.Size(565, 610);
             this.Controls.Add(this.labelVer);
             this.Controls.Add(this.labelProgess);
             this.Controls.Add(this.buttonCancel);
@@ -523,6 +561,9 @@
         private System.Windows.Forms.ToolStripMenuItem viewToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem logToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem closeFileToolStripMenuItem;
+        private System.Windows.Forms.Button buttonLoadSkipList;
+        private System.Windows.Forms.Label labelSkipCount;
+        private System.Windows.Forms.Button buttonClearSkipList;
     }
 }
 

@@ -13,7 +13,12 @@ namespace Log
         //private static readonly List<string> CacheLogs = new List<string>();
         private static readonly List<ILogger> ListLogger = new List<ILogger>();
         private static readonly object WriteLogLocker = new object();
-        public static LogViewer MyLogForm { get; set; }
+
+        private static string AllRecipientFilename => string.Format(@"{0}\{1}", Program.ExeDir, "all_recipients.txt");
+        private static string SentLogFilename => string.Format(@"{0}\{1}", Program.ExeDir, "sent.txt");
+        
+
+        //public static LogViewer MyLogForm { get; set; }
         //static LogManager()
         //{
         //    IsConsole = false;
@@ -21,6 +26,14 @@ namespace Log
 
         //private static string LogPath => string.Format(@"{0}\{1}", MassEmailSender.Program.ExeDir, LogFileName);
         //public static bool IsConsole { get; set; }
+        public static void LogRecipients(List<string> recipients)
+        {
+            File.WriteAllLines(AllRecipientFilename, recipients, Encoding.UTF8);
+        }
+        public static void LogSent(string email)
+        {
+            File.AppendAllLines(SentLogFilename, new string[] { email }, Encoding.UTF8);
+        }
 
         public static ILogger GetLogger(Type t)
         {
@@ -41,11 +54,11 @@ namespace Log
 
         private static void WriteLog(string log)
         {
-           if(MyLogForm != null)
-            {
-                MyLogForm.AppendLog(log);
+           //if(MyLogForm != null)
+           // {
+           //     MyLogForm.AppendLog(log);
 
-            }
+           // }
         }
     }
 }
